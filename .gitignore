@@ -9,3 +9,6 @@ using/
 docs/
 .claude/
 FINAL_REPORT.md
+RELEASE_v1.1.0.md
+*.docx
+*.doc

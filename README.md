@@ -1,11 +1,12 @@
 # STSFifth - 第五特别行动组插件
 
 ![LabAPI](https://img.shields.io/badge/LabAPI-1.1.7+-blue)
-![Version](https://img.shields.io/badge/Version-1.1.0-green)
 ![SCP:SL](https://img.shields.io/badge/SCP%3ASL-14.x-orange)
 ![License](https://img.shields.io/badge/License-GPL--3.0-red)
 
 SCP: Secret Laboratory 服务器插件，为游戏添加第五特别行动组（STS-5）特殊阵营和 Omega 核弹机制。
+
+基于 LabAPI 框架开发。
 
 ## 功能特性
 
