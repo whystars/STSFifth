@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+packages/
+using/
+*.user
+*.suo
+*.cache
+docs/
+.claude/
+FINAL_REPORT.md
