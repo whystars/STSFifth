@@ -1,12 +1,11 @@
 # STSFifth - 第五特别行动组插件
 
 ![LabAPI](https://img.shields.io/badge/LabAPI-1.1.7+-blue)
+![Version](https://img.shields.io/badge/Version-1.1.0-green)
 ![SCP:SL](https://img.shields.io/badge/SCP%3ASL-14.x-orange)
 ![License](https://img.shields.io/badge/License-GPL--3.0-red)
 
 SCP: Secret Laboratory 服务器插件，为游戏添加第五特别行动组（STS-5）特殊阵营和 Omega 核弹机制。
-
-基于 LabAPI 框架开发。
 
 ## 功能特性
 
@@ -242,15 +241,3 @@ A: CASSIE 播报分为两种机制：
 ## 许可证
 
 本项目使用 GPL v3 许可证。详见 [LICENSE](LICENSE) 文件。
-
-## 作者
-
-Crystal
-
-## 版本
-
-0.1.0
-
----
-
-**注意**：本插件为 SCP: Secret Laboratory 服务器插件，需要服务器管理员权限才能安装和配置。
