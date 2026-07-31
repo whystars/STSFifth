@@ -9,7 +9,9 @@ namespace STSFifth
     public sealed class StsPresentationService
     {
         private const string LogPrefix = "[STSFifth]";
-        private const global::PlayerInfoArea NativeRoleMetadataFlags = global::PlayerInfoArea.Role;
+        private const global::PlayerInfoArea NativeRoleMetadataFlags =
+            global::PlayerInfoArea.Role |
+            global::PlayerInfoArea.UnitName;  // 清除 UnitName，避免残留 UnitID
         private const global::PlayerInfoArea OwnedDisplayFlags =
             global::PlayerInfoArea.CustomInfo | NativeRoleMetadataFlags;
 

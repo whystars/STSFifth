@@ -17,6 +17,7 @@ namespace STSFifth
         private const string CassieResourceName = "STSFifth.Audio.entry_cassie.wav";
         private const string EntryResourceName = "STSFifth.Audio.entry_member.wav";
         private const string NukeStartResourceName = "STSFifth.Audio.nuke.wav";
+        private const int MaximumCassieSubtitleDurationSeconds = 300;
 
         private readonly StsConfig config;
         private readonly StsTranslation translation;
@@ -24,10 +25,12 @@ namespace STSFifth
         private bool audioRegistered;
         private bool cassieAudioAvailable;
         private bool entryAudioAvailable;
-        private bool nukeStartAudioAvailable;
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        //private bool nukeStartAudioAvailable;
         private int cassieSessionId;
         private int entrySessionId;
-        private int nukeStartSessionId;
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        //private int nukeStartSessionId;
 
         public StsAudioService(StsConfig config, StsTranslation translation)
         {
@@ -45,7 +48,8 @@ namespace STSFifth
             audioRegistered = true;
             cassieAudioAvailable = TryRegisterAudioResource(config.Audio.CassieAudioKey, CassieResourceName, "入场 CASSIE 公告音频");
             entryAudioAvailable = TryRegisterAudioResource(config.Audio.EntryAudioKey, EntryResourceName, "第五特别行动组入场音频");
-            nukeStartAudioAvailable = TryRegisterAudioResource(config.Audio.NukeStartAudioKey, NukeStartResourceName, "Omega 核弹启动音频");
+            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+            //nukeStartAudioAvailable = TryRegisterAudioResource(config.Audio.NukeStartAudioKey, NukeStartResourceName, "Omega 核弹启动音频");
         }
 
         public void PlaySummonAnnouncement(Func<Player, bool> stsMemberFilter)
@@ -55,22 +59,25 @@ namespace STSFifth
             PlayEntryAudio(stsMemberFilter);
         }
 
-        public void PlayNukeStartAnnouncement()
-        {
-            PlayNukeStartCassieSubtitle();
-            PlayNukeStartAudio();
-        }
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        //public void PlayNukeStartAnnouncement()
+        //{
+        //    PlayNukeStartCassieSubtitle();
+        //    PlayNukeStartAudio();
+        //}
 
         public void StopAll(string reason)
         {
             StopSession(ref cassieSessionId, $"入场 CASSIE 公告音频，原因：{reason}");
             StopSession(ref entrySessionId, $"第五特别行动组入场音频，原因：{reason}");
-            StopSession(ref nukeStartSessionId, $"Omega 核弹启动音频，原因：{reason}");
+            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+            //StopSession(ref nukeStartSessionId, $"Omega 核弹启动音频，原因：{reason}");
 
             // 重置可用性标志，避免外部停止后残留无效引用
             cassieSessionId = 0;
             entrySessionId = 0;
-            nukeStartSessionId = 0;
+            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+            //nukeStartSessionId = 0;
         }
 
         private bool TryRegisterAudioResource(string rawKey, string resourceName, string purpose)
@@ -114,14 +121,20 @@ namespace STSFifth
 
             try
             {
-                // 入场 CASSIE 使用音频文件，不需要原生 CASSIE 语音
+                int subtitleDurationSeconds = ResolveCassieSubtitleDurationSeconds(
+                    config.Audio.CassieSubtitleDurationSeconds);
+                string timingText = BuildCassieSubtitleTimingText(subtitleDurationSeconds);
+
+                // 使用纯句号作为 CASSIE 朗读内容来延时，不影响自定义音频播放
                 LabAnnouncer.Message(
-                    string.Empty,
+                    timingText,
                     translation.EntryCassieText.Trim(),
                     false,
                     0f,
                     0f);
-                Logger.Info($"{LogPrefix} 已发送第五特别行动组入场 CASSIE 字幕。");
+                Logger.Info(
+                    $"{LogPrefix} 已发送第五特别行动组入场 CASSIE 字幕，英文句号数={subtitleDurationSeconds}，" +
+                    $"预计显示约 {subtitleDurationSeconds} 秒，配置值={config.Audio.CassieSubtitleDurationSeconds:0.###} 秒；字幕允许先于音频结束。");
             }
             catch (Exception exception)
             {
@@ -129,6 +142,8 @@ namespace STSFifth
             }
         }
 
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        /*
         private void PlayNukeStartCassieSubtitle()
         {
             if (string.IsNullOrWhiteSpace(translation.NukeStartCassieText))
@@ -156,6 +171,7 @@ namespace STSFifth
                 Logger.Warn($"{LogPrefix} 发送 Omega 核弹启动 CASSIE 公告失败。错误：{exception.Message}");
             }
         }
+        */
 
         private void PlayCassieAudio()
         {
@@ -211,6 +227,8 @@ namespace STSFifth
                 "第五特别行动组入场音频");
         }
 
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        /*
         private void PlayNukeStartAudio()
         {
             string key = NormalizeKey(config.Audio.NukeStartAudioKey);
@@ -235,6 +253,7 @@ namespace STSFifth
                 "Omega 核弹启动音频（循环）",
                 loop: true);
         }
+        */
 
         private int PlayGlobalAudio(string key, float volume, Func<Player, bool> filter, string purpose, bool loop = false)
         {
@@ -299,6 +318,38 @@ namespace STSFifth
         private static string NormalizeKey(string key)
         {
             return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
+        }
+
+        internal static int ResolveCassieSubtitleDurationSeconds(float configuredSeconds)
+        {
+            float safeSeconds = IsFinite(configuredSeconds)
+                ? Math.Min(MaximumCassieSubtitleDurationSeconds, Math.Max(1f, configuredSeconds))
+                : 20f;
+
+            return (int)Math.Ceiling(safeSeconds);
+        }
+
+        internal static string BuildCassieSubtitleTimingText(int durationSeconds)
+        {
+            int periodCount = Math.Min(MaximumCassieSubtitleDurationSeconds, Math.Max(1, durationSeconds));
+            StringBuilder timingText = new StringBuilder((periodCount * 2) - 1);
+
+            for (int i = 0; i < periodCount; i++)
+            {
+                if (i > 0)
+                {
+                    timingText.Append(' ');
+                }
+
+                timingText.Append('.');
+            }
+
+            return timingText.ToString();
+        }
+
+        private static bool IsFinite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value);
         }
     }
 }

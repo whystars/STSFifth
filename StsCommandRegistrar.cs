@@ -18,7 +18,8 @@ namespace STSFifth
         public StsCommandRegistrar(StsConfig config, StsTranslation translation, StsService stsService, StsNukeService nukeService)
         {
             commands.Add(new StsRoleCommand(config, translation, stsService));
-            commands.Add(new StsNukeCommand(config, translation, nukeService));
+            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+            //commands.Add(new StsNukeCommand(config, translation, nukeService));
         }
 
         public void Register()
@@ -34,7 +35,7 @@ namespace STSFifth
             }
 
             registered = true;
-            Logger.Info($"{LogPrefix} 管理员命令 stsrole / stsnuke 已注册到 RemoteAdmin。");
+            Logger.Info($"{LogPrefix} 管理员命令 stsrole 已注册到 RemoteAdmin。");
         }
 
         public void Unregister()
@@ -50,7 +51,7 @@ namespace STSFifth
             }
 
             registered = false;
-            Logger.Info($"{LogPrefix} 管理员命令 stsrole / stsnuke 已注销。");
+            Logger.Info($"{LogPrefix} 管理员命令 stsrole 已注销。");
         }
 
         private static void RegisterCommand(CommandHandler handler, ICommand command)
@@ -250,6 +251,8 @@ namespace STSFifth
         }
     }
 
+    // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+    /*
     internal sealed class StsNukeCommand : ICommand
     {
         private readonly StsConfig config;
@@ -349,4 +352,5 @@ namespace STSFifth
             return arguments.Array[arguments.Offset + index];
         }
     }
+    */
 }

@@ -1,26 +1,20 @@
 # STSFifth - 第五特别行动组插件
 
 ![LabAPI](https://img.shields.io/badge/LabAPI-1.1.7+-blue)
-![Version](https://img.shields.io/badge/Version-1.1.0-green)
+![Version](https://img.shields.io/badge/Version-1.1.1--pre-green)
 ![SCP:SL](https://img.shields.io/badge/SCP%3ASL-14.x-orange)
 ![License](https://img.shields.io/badge/License-GPL--3.0-red)
 
-SCP: Secret Laboratory 服务器插件，为游戏添加第五特别行动组（STS-5）特殊阵营和 Omega 核弹机制。
+SCP: Secret Laboratory 服务器插件，为游戏添加第五特别行动组（STS-5）特殊阵营。
 
 ## 功能特性
 
 ### 第五特别行动组
-- **定时生成**：回合开始 15 分钟后从旁观者中随机选择 3-6 名玩家生成
+- **定时生成**：回合开始后可配置延迟时间（默认 15 分钟）从旁观者中随机选择 3-6 名玩家生成
 - **五种职位**：队长、压制者、特种干员、精英、士兵，各有独特装备和血量
 - **自定义展示**：头顶显示职位名称，屏幕下方显示任务提示
 - **专属音效**：入场时播放全服 CASSIE 公告和成员专属背景音乐
-
-### Omega 核弹系统
-- **地表启动**：STS-5 成员可在地表按钮启动 Omega 核弹（130 秒倒计时）
-- **地下关闭**：任何人可在地下核弹室按红色按钮关闭
-- **重新启动**：关闭后可重新启动，从剩余时间继续倒计时
-- **循环音乐**：启动时播放循环背景音乐，关闭时停止
-- **爆炸结算**：倒计时归零后，非基金会阵营全部死亡，基金会传送到逃生区，强制基金会获胜
+- **灵活配置**：生成位置、延迟时间、装备、血量等均可通过配置文件自定义
 
 ### 职位装备
 
@@ -63,11 +57,8 @@ MinimumSummonCount: 3
 # 单次最多生成的人数
 MaximumSummonCount: 6
 
-# Omega 核弹倒计时秒数
-Nuke:
-  CountdownSeconds: 130.0
-  NotificationDurationSeconds: 8.0
-  EndRoundDelaySeconds: 3.0
+# 是否允许旁观者 Dummy 进入候选池
+AllowSpectatorDummies: true
 ```
 
 ### 职位配置
@@ -81,7 +72,26 @@ RoleSettings:
     Priority: 0
     CarrierRole: NtfCaptain
     MaxHealth: 150
+  Suppressor:
+    MaxCount: 1
+    Priority: 1
+    CarrierRole: NtfSergeant
+    MaxHealth: 120
   # ... 其他职位配置
+```
+
+### 生成位置配置
+
+支持三种生成策略：
+- **预设点位**：在配置的固定坐标生成
+- **九尾生成点**：使用游戏原生的九尾生成点
+- **逃生区散布**：在地表逃生区随机分散生成
+
+```yaml
+Spawn:
+  Strategy: EscapeZoneSpread  # 推荐使用
+  SpreadRadius: 10.0
+  PresetSpawnPoints: []
 ```
 
 ### 音频配置
@@ -90,138 +100,49 @@ RoleSettings:
 
 ```yaml
 Audio:
-  CassieAudioKey: STS5_EntryCassie      # 入场 CASSIE 音频文件
-  EntryAudioKey: STS5_EntryMember       # 成员专属入场音乐
-  NukeStartAudioKey: STS5_NukeStart     # 核弹启动背景音乐
-  CassieVolume: 1.0                     # CASSIE 音频音量
-  EntryVolume: 1.0                      # 入场音乐音量
-  NukeStartVolume: 1.0                  # 核弹音乐音量
+  CassieAudioKey: STS5_EntryCassie          # 入场 CASSIE 音频文件
+  CassieSubtitleDurationSeconds: 20.0       # CASSIE 字幕显示时长
+  EntryAudioKey: STS5_EntryMember           # 成员专属入场音乐
+  CassieVolume: 1.0                         # CASSIE 音频音量
+  EntryVolume: 1.0                          # 入场音乐音量
 ```
 
-**CASSIE 播报机制**：
-- **入场**：播放 `entry_cassie.wav` 音频文件 + 显示中文字幕
-- **核弹启动**：游戏原生 CASSIE 语音朗读英文 + 播放 `nuke.wav` 背景音乐 + 显示中文字幕（类似原版 Alpha 核弹）
-- **核弹关闭**：游戏原生 CASSIE 语音朗读英文 + 显示中文字幕
+### HUD 配置
 
-**自定义 CASSIE 语音**（仅核弹启动/关闭）：
-可在 `translation.yml` 中配置：
-- `NukeStartCassieAnnouncement` - 核弹启动时 CASSIE 朗读的英文文本（CASSIE 语法）
-- `NukeStartCassieText` - 核弹启动时显示的中文字幕
-- `NukeStopCassieAnnouncement` - 核弹关闭时 CASSIE 朗读的英文文本（CASSIE 语法）
-- `NukeStopCassieText` - 核弹关闭时显示的中文字幕
+自定义玩家界面显示：
+
+```yaml
+Hud:
+  RoleHintX: 0
+  RoleHintY: 850          # 角色提示 Y 坐标
+  FontSize: 25
+```
+
+### 翻译配置
+
+所有文本均可在 `translation.yml` 中自定义：
+
+```yaml
+RoleDisplayNames:
+  Commander: 队长
+  Suppressor: 压制者
+  Specialist: 特种干员
+  Elite: 精英
+  Soldier: 士兵
+
+EntryCassieText: "所有单位注意，经O5议会指令第五特别行动组已进入设施..."
+```
 
 ## 管理员命令
 
-需要 RemoteAdmin 权限：
+- `stsrole <玩家ID> <职位>` - 强制指定玩家为某个 STS-5 职位
 
-### stsrole
-手动设置玩家为第五特别行动组成员
-
-```
-stsrole <PlayerId> <RoleUid>
-```
-
-**职位 UID**：
-- `Commander` - 队长
-- `Suppressor` - 压制者
-- `Specialist` - 特种干员
-- `Elite` - 精英
-- `Soldier` - 士兵
-
-**示例**：
-```
-stsrole 1 Commander
-```
-
-### stsnuke
-强制控制 Omega 核弹状态
-
-```
-stsnuke start   # 强制启动
-stsnuke stop    # 强制关闭
-```
-
-## 游戏机制
-
-### 生成触发
-- 回合开始 15 分钟后自动触发（可配置）
-- 从旁观者中随机选择候选人
-- 最少 3 人，最多 6 人
-- 一局只触发 1 次
-- 人数不足按优先级截断：队长 → 压制者 → 特种干员 → 精英 → 士兵
-
-### Omega 核弹
-- **启动条件**：STS-5 成员在地表按钮 + Omega 未启动 + 原版核弹未启动
-- **关闭条件**：任何人在地下红色按钮 + Omega 已启动
-- **重启机制**：关闭后可重新启动，从剩余时间继续倒计时（不重置为 130 秒）
-- **冲突处理**：Omega 核弹与原版核弹互斥，同时只能有一个运行
-
-### 爆炸结算
-1. 基金会阵营（包括 STS-5、QRT、PSC）传送到逃生区
-2. 播放震屏和开门特效
-3. 非基金会阵营全部死亡（死亡原因："你在Omega核弹爆炸中消失了"）
-4. 全服显示"核辐射下的秘密"提示
-5. 3 秒后强制结束回合，基金会获胜
-
-## 跨插件兼容性
-
-### 已测试兼容
-- **QRTForces**：基金会快速反应部队插件
-- **PSCFaction**：PSC 阵营插件
-- **HUDInfo**：HUD 信息显示插件
-- **LevelUp**：等级系统插件
-
-### 豁免机制
-爆炸时自动豁免所有基金会阵营玩家（`Faction.FoundationStaff`），包括：
-- STS-5 成员
-- QRT 成员
-- PSC 成员
-- 科学家
-- 设施警卫
-
-## 技术细节
-
-### 开发环境
-- .NET Framework 4.8.1
-- C# 13.0
-- LabAPI 1.1.7
-
-### 依赖库
-- HintServiceMeow 5.5.0 - HUD 显示
-- AudioManagerAPI 2.3.6 - 音频播放
-- YamlDotNet 18.1.0 - 配置序列化
-
-### 嵌入资源
-- `entry_cassie.wav` (2.5 MB) - 入场 CASSIE 公告音频
-- `entry_member.wav` (30 MB) - 成员专属入场音乐
-- `nuke.wav` (26 MB) - Omega 核弹启动/倒计时背景音乐（循环播放）
-
-**CASSIE 系统**：
-- **入场**：播放预录制的 `entry_cassie.wav` 音频文件
-- **核弹启动/关闭**：使用游戏原生 CASSIE 语音朗读英文，类似原版 Alpha 核弹
+职位代码：`Commander`, `Suppressor`, `Specialist`, `Elite`, `Soldier`
 
 ## 常见问题
 
-### Q: 为什么生成不了第五特别行动组？
-A: 检查以下条件：
-- 回合是否已经过 15 分钟（可在配置中调整）
-- 旁观者人数是否达到最低要求（默认 3 人）
-- 当前回合是否已经生成过（一局只生成 1 次）
-- 插件配置中 `IsEnabled` 是否为 `true`
-
-### Q: Omega 核弹按钮按不了？
-A: 检查以下条件：
-- 地表按钮：按的人必须是 STS-5 成员，且 Omega 未启动，且原版核弹未启动
-- 地下按钮：Omega 必须已经启动才能关闭
-
-### Q: 核弹爆炸后为什么基金会没有传送到逃生区？
-A: 可能的原因：
-- 服务器地图逃生区坐标异常
-- 与其他插件冲突（修改了传送逻辑）
-- 检查服务器日志中是否有传送相关的错误信息
-
-### Q: 如何调整生成时间？
-A: 编辑配置文件中的 `SpawnDelayMinutes`，单位为分钟（支持小数）
+### Q: 如何调整生成延迟？
+A: 修改 `config.yml` 中的 `SpawnDelayMinutes`，单位为分钟（支持小数）
 
 ### Q: 音频没有播放？
 A: 检查以下内容：
@@ -231,13 +152,43 @@ A: 检查以下内容：
 - 音频音量是否设置为 0
 
 ### Q: CASSIE 播报听不到或内容不对？
-A: CASSIE 播报分为两种机制：
-- **入场 CASSIE**：播放 `entry_cassie.wav` 音频文件（预录制）+ 中文字幕
-- **核弹启动/关闭 CASSIE**：游戏原生 CASSIE 语音朗读英文 + 中文字幕
-  - 英文朗读文本：在 `translation.yml` 的 `NukeStartCassieAnnouncement` / `NukeStopCassieAnnouncement` 字段配置
-  - 中文字幕：在 `translation.yml` 的 `NukeStartCassieText` / `NukeStopCassieText` 字段配置
-  - 确认 CASSIE 英文文本使用了正确的 CASSIE 语法（大写英文、使用 `.` 作为停顿）
+A: CASSIE 入场公告使用预录音频 + CASSIE 句号延时字幕：
+- **音频**：播放 `entry_cassie.wav` 音频文件（预录制）
+- **字幕**：在 `translation.yml` 的 `EntryCassieText` 字段配置
+- **字幕时长**：在 `config.yml` 的 `Audio.CassieSubtitleDurationSeconds` 配置（默认 20 秒）
+
+### Q: 如何修改生成位置？
+A: 推荐使用 `EscapeZoneSpread` 策略在地表随机分散生成。如需固定点位，可使用 `stsrole` 命令生成后记录坐标，然后配置到 `PresetSpawnPoints`。
+
+### Q: 玩家头顶信息显示不正确？
+A: 检查 HUD 坐标配置，确保 `RoleHintY` 值合适（默认 850）。如果文本重叠，可适当减小此值。
+
+## 已知限制
+
+- 本插件暂未实现 Omega 核弹系统，该功能正在重新设计中
+- 生成需要足够数量的旁观者候选人（默认至少 3 人）
+- 承载角色使用九尾狐阵营，可能与某些阵营统计插件产生冲突
+
+## 技术支持
+
+- **问题反馈**：[GitHub Issues](https://github.com/whystars/STSFifth/issues)
+- **版本历史**：[Releases](https://github.com/whystars/STSFifth/releases)
 
 ## 许可证
 
 本项目使用 GPL v3 许可证。详见 [LICENSE](LICENSE) 文件。
+
+## 更新日志
+
+### v1.1.1-pre (当前)
+- 🐛 修复 CustomInfoArea 残留 UnitID 的问题
+- 🐛 修复角色介绍 HUD 坐标过低导致文本重叠
+- ✨ 增强 CASSIE 入场字幕延时功能（支持配置显示时长）
+- 🔧 暂时移除 Omega 核弹功能（等待重新设计）
+
+### v1.1.0
+- 🎉 首次正式发布
+- ✨ 实现第五特别行动组完整功能
+- ✨ 五种职位与装备系统
+- ✨ 自定义音频与 HUD 显示
+- ✨ 灵活的生成位置策略

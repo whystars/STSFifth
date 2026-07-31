@@ -41,10 +41,11 @@ namespace STSFifth
         [YamlMember(Description = "CASSIE 公告音频、字幕时长和入场音频配置。")]
         public StsAudioConfig Audio { get; set; } = new StsAudioConfig();
 
-        [YamlMember(Description = "Omega 核弹相关配置。")]
-        public StsNukeConfig Nuke { get; set; } = new StsNukeConfig();
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        //[YamlMember(Description = "Omega 核弹相关配置。")]
+        //public StsNukeConfig Nuke { get; set; } = new StsNukeConfig();
 
-        [YamlMember(Description = "是否启用 RemoteAdmin 管理员命令 stsrole / stsnuke。")]
+        [YamlMember(Description = "是否启用 RemoteAdmin 管理员命令 stsrole。")]
         public bool EnableTestCommands { get; set; } = true;
 
         [YamlMember(Description = "各自定义职位发放的物品 ItemType 名称列表。")]
@@ -92,7 +93,8 @@ namespace STSFifth
             ValidateSpawn(warn);
             ValidateHud(warn);
             ValidateAudio(warn);
-            ValidateNuke(warn);
+            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+            //ValidateNuke(warn);
             ValidateEquipment(warn);
             ValidateAmmo(warn);
         }
@@ -202,12 +204,13 @@ namespace STSFifth
                 Hud.RoleHintY = defaults.RoleHintY;
             }
 
-            if (!IsFinite(Hud.NukeCountdownX) || !IsFinite(Hud.NukeCountdownY))
-            {
-                warn("Hud 核弹倒计时坐标非法，已回退为默认坐标。");
-                Hud.NukeCountdownX = defaults.NukeCountdownX;
-                Hud.NukeCountdownY = defaults.NukeCountdownY;
-            }
+            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+            //if (!IsFinite(Hud.NukeCountdownX) || !IsFinite(Hud.NukeCountdownY))
+            //{
+            //    warn("Hud 核弹倒计时坐标非法，已回退为默认坐标。");
+            //    Hud.NukeCountdownX = defaults.NukeCountdownX;
+            //    Hud.NukeCountdownY = defaults.NukeCountdownY;
+            //}
 
             if (!IsFinite(Hud.NotificationHintX) || !IsFinite(Hud.NotificationHintY))
             {
@@ -248,6 +251,22 @@ namespace STSFifth
                 Audio.CassieAudioKey = Audio.CassieAudioKey.Trim();
             }
 
+            if (!IsFinite(Audio.CassieSubtitleDurationSeconds))
+            {
+                warn($"Audio.CassieSubtitleDurationSeconds 数值非法，已回退为默认值 {defaults.CassieSubtitleDurationSeconds} 秒。");
+                Audio.CassieSubtitleDurationSeconds = defaults.CassieSubtitleDurationSeconds;
+            }
+            else if (Audio.CassieSubtitleDurationSeconds < 1f)
+            {
+                warn($"Audio.CassieSubtitleDurationSeconds 小于 1 秒，已夹紧为 1。原值={Audio.CassieSubtitleDurationSeconds}");
+                Audio.CassieSubtitleDurationSeconds = 1f;
+            }
+            else if (Audio.CassieSubtitleDurationSeconds > 300f)
+            {
+                warn($"Audio.CassieSubtitleDurationSeconds 大于 300 秒，已夹紧为 300。原值={Audio.CassieSubtitleDurationSeconds}");
+                Audio.CassieSubtitleDurationSeconds = 300f;
+            }
+
             if (string.IsNullOrWhiteSpace(Audio.EntryAudioKey))
             {
                 warn("Audio.EntryAudioKey 为空，将跳过第五特别行动组专属入场音频播放。");
@@ -257,20 +276,24 @@ namespace STSFifth
                 Audio.EntryAudioKey = Audio.EntryAudioKey.Trim();
             }
 
-            if (string.IsNullOrWhiteSpace(Audio.NukeStartAudioKey))
-            {
-                warn("Audio.NukeStartAudioKey 为空，将跳过 Omega 核弹启动音频播放。");
-            }
-            else
-            {
-                Audio.NukeStartAudioKey = Audio.NukeStartAudioKey.Trim();
-            }
+            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+            //if (string.IsNullOrWhiteSpace(Audio.NukeStartAudioKey))
+            //{
+            //    warn("Audio.NukeStartAudioKey 为空，将跳过 Omega 核弹启动音频播放。");
+            //}
+            //else
+            //{
+            //    Audio.NukeStartAudioKey = Audio.NukeStartAudioKey.Trim();
+            //}
 
             Audio.CassieVolume = ClampVolume(Audio.CassieVolume, defaults.CassieVolume, "Audio.CassieVolume", warn);
             Audio.EntryVolume = ClampVolume(Audio.EntryVolume, defaults.EntryVolume, "Audio.EntryVolume", warn);
-            Audio.NukeStartVolume = ClampVolume(Audio.NukeStartVolume, defaults.NukeStartVolume, "Audio.NukeStartVolume", warn);
+            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+            //Audio.NukeStartVolume = ClampVolume(Audio.NukeStartVolume, defaults.NukeStartVolume, "Audio.NukeStartVolume", warn);
         }
 
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        /*
         private void ValidateNuke(Action<string> warn)
         {
             StsNukeConfig defaults = new StsNukeConfig();
@@ -311,6 +334,7 @@ namespace STSFifth
                 Nuke.SurvivingFactionNames = defaults.SurvivingFactionNames;
             }
         }
+        */
         private void ValidateEquipment(Action<string> warn)
         {
             Dictionary<StsRole, List<string>> defaults = StsConfigDefaults.CreateEquipment();
@@ -495,24 +519,26 @@ namespace STSFifth
         public float RoleHintX { get; set; } = 0f;
 
         [YamlMember(Description = "职位常驻提示 Y 坐标（越大越靠屏幕下方）。")]
-        public float RoleHintY { get; set; } = 1000f;
+        public float RoleHintY { get; set; } = 850f;
 
-        [YamlMember(Description = "Omega 核弹倒计时提示 X 坐标。")]
-        public float NukeCountdownX { get; set; } = 0f;
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        //[YamlMember(Description = "Omega 核弹倒计时提示 X 坐标。")]
+        //public float NukeCountdownX { get; set; } = 0f;
 
-        [YamlMember(Description = "Omega 核弹倒计时提示 Y 坐标（负值越大越靠屏幕上方）。")]
-        public float NukeCountdownY { get; set; } = -850f;
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        //[YamlMember(Description = "Omega 核弹倒计时提示 Y 坐标（负值越大越靠屏幕上方）。")]
+        //public float NukeCountdownY { get; set; } = -850f;
 
-        [YamlMember(Description = "临时通知提示（核弹关闭提示等）的 X 坐标。")]
+        [YamlMember(Description = "临时通知提示的 X 坐标。")]
         public float NotificationHintX { get; set; } = 0f;
 
-        [YamlMember(Description = "临时通知提示（核弹关闭提示等）的 Y 坐标。")]
+        [YamlMember(Description = "临时通知提示的 Y 坐标。")]
         public float NotificationHintY { get; set; } = -850f;
 
         [YamlMember(Description = "HUD 提示字号。")]
         public int FontSize { get; set; } = 25;
 
-        [YamlMember(Description = "临时通知提示（如核弹关闭提示）的默认显示时长（秒）。")]
+        [YamlMember(Description = "临时通知提示的默认显示时长（秒）。")]
         public float NotificationDurationSeconds { get; set; } = 5f;
     }
 
@@ -521,11 +547,15 @@ namespace STSFifth
         [YamlMember(Description = "全服可听的入场 CASSIE 公告音频注册 Key，留空则跳过播放。")]
         public string CassieAudioKey { get; set; } = "STS5_EntryCassie";
 
+        [YamlMember(Description = "入场 CASSIE 自定义字幕显示秒数。会按向上取整后的秒数生成同数量的英文句号作为 CASSIE 停顿，每个句号约 1 秒；允许短于音频文件时长。范围 1 到 300 秒。")]
+        public float CassieSubtitleDurationSeconds { get; set; } = 20f;
+
         [YamlMember(Description = "仅第五特别行动组成员可听的专属入场音频注册 Key，留空则跳过播放。")]
         public string EntryAudioKey { get; set; } = "STS5_EntryMember";
 
-        [YamlMember(Description = "Omega 核弹启动时全服可听的音频注册 Key，留空则跳过播放。")]
-        public string NukeStartAudioKey { get; set; } = "STS5_NukeStart";
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        //[YamlMember(Description = "Omega 核弹启动时全服可听的音频注册 Key，留空则跳过播放。")]
+        //public string NukeStartAudioKey { get; set; } = "STS5_NukeStart";
 
         [YamlMember(Description = "入场 CASSIE 公告音量（0~1）。")]
         public float CassieVolume { get; set; } = 1f;
@@ -533,10 +563,13 @@ namespace STSFifth
         [YamlMember(Description = "第五特别行动组专属入场音频音量（0~1）。")]
         public float EntryVolume { get; set; } = 1f;
 
-        [YamlMember(Description = "Omega 核弹启动音频音量（0~1）。")]
-        public float NukeStartVolume { get; set; } = 1f;
+        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+        //[YamlMember(Description = "Omega 核弹启动音频音量（0~1）。")]
+        //public float NukeStartVolume { get; set; } = 1f;
     }
 
+    // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
+    /*
     public sealed class StsNukeConfig
     {
         [YamlMember(Description = "Omega 核弹倒计时总秒数。")]
@@ -554,6 +587,7 @@ namespace STSFifth
         [YamlMember(Description = "爆炸结算时豁免死亡的阵营说明，仅用于日志记录，实际豁免逻辑硬编码为基金会、QRT、PSC。")]
         public string SurvivingFactionNames { get; set; } = "FacilityForces,QRTForces,PSCFaction";
     }
+    */
 
     internal static class StsConfigDefaults
     {
