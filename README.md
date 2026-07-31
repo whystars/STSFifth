@@ -1,7 +1,7 @@
 # STSFifth - 第五特别行动组插件
 
 ![LabAPI](https://img.shields.io/badge/LabAPI-1.1.7+-blue)
-![Version](https://img.shields.io/badge/Version-1.1.1--pre-green)
+![Version](https://img.shields.io/badge/Version-1.1.2--pre-green)
 ![SCP:SL](https://img.shields.io/badge/SCP%3ASL-14.x-orange)
 ![License](https://img.shields.io/badge/License-GPL--3.0-red)
 
@@ -32,7 +32,7 @@ SCP: Secret Laboratory 服务器插件，为游戏添加第五特别行动组（
 - SCP: Secret Laboratory 服务器
 - LabAPI 1.1.7 或更高版本
 - HintServiceMeow 5.5.0 或更高版本
-- AudioManagerAPI 2.3.6 或更高版本
+- AudioManagerAPI 2.4.2 或更高版本
 
 ### 安装步骤
 1. 下载 `STSFifth.dll` 到服务器的 `LabMods` 目录
@@ -180,7 +180,12 @@ A: 检查 HUD 坐标配置，确保 `RoleHintY` 值合适（默认 850）。如�
 
 ## 更新日志
 
-### v1.1.1-pre (当前)
+### v1.1.2-pre (当前)
+- ⬆️ 升级 AudioManagerAPI 2.3.6 → 2.4.2
+- 🔧 适配 AudioManagerAPI 2.4.x 新的泛型状态参数 API
+- 📝 更新依赖文档
+
+### v1.1.1-pre
 - 🐛 修复 CustomInfoArea 残留 UnitID 的问题
 - 🐛 修复角色介绍 HUD 坐标过低导致文本重叠
 - ✨ 增强 CASSIE 入场字幕延时功能（支持配置显示时长）

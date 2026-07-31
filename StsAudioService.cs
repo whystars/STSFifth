@@ -259,12 +259,14 @@ namespace STSFifth
         {
             try
             {
+                // AudioManagerAPI 2.4.x 使用泛型状态参数
                 int sessionId = DefaultAudioManager.Instance.PlayGlobalAudio(
                     key: key,
+                    state: (object)null,  // 不需要额外状态
+                    validPlayersFilter: (player, state) => filter(player),  // 适配新的状态感知过滤器
                     loop: loop,
                     volume: Mathf.Clamp01(volume),
                     priority: AudioPriority.High,
-                    validPlayersFilter: filter,
                     queue: false,
                     fadeInDuration: 0f,
                     persistent: loop,

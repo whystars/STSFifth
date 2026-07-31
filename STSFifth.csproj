@@ -42,8 +42,10 @@
       <HintPath>using\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="AudioManagerAPI, Version=2.3.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\SCPSL-AudioManagerAPI.2.3.6\lib\net48\AudioManagerAPI.dll</HintPath>
+    <Reference Include="AudioManagerAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\SCPSL-AudioManagerAPI.2.4.2\lib\net48\AudioManagerAPI.dll</HintPath>
+      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="CommandSystem.Core">
       <HintPath>using\CommandSystem.Core.dll</HintPath>
