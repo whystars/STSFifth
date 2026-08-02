@@ -288,10 +288,110 @@ namespace STSFifth
             state.IsOmegaDetonated = true;
             state.IsOmegaArmed = false;
 
-            // TODO: 实现爆炸逻辑
-            // - 杀死非基金会阵营
-            // - 传送基金会到地表
-            // - 强制结束回合，基金会胜利
+            // 停止音频
+            audioService?.StopOmegaNukeAudio();
+
+            // 恢复灯光
+            RestoreFacilityLights();
+
+            // 清除倒计时HUD
+            ClearAllPlayersCountdownHud();
+
+            // 执行爆炸逻辑
+            try
+            {
+                List<Player> foundationPlayers = new List<Player>();
+                List<Player> nonFoundationPlayers = new List<Player>();
+
+                // 分类所有玩家
+                foreach (Player player in Player.GetPlayers())
+                {
+                    if (player == null || !player.IsAlive)
+                        continue;
+
+                    if (IsFoundationFaction(player))
+                        foundationPlayers.Add(player);
+                    else
+                        nonFoundationPlayers.Add(player);
+                }
+
+                Logger.Info($"{LogPrefix} Omega 核弹爆炸分类：基金会={foundationPlayers.Count}，非基金会={nonFoundationPlayers.Count}");
+
+                // 杀死所有非基金会阵营
+                foreach (Player player in nonFoundationPlayers)
+                {
+                    try
+                    {
+                        player.Kill("在 Omega 核弹爆炸中消失了");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"{LogPrefix} 杀死玩家 {player.Nickname} 失败：{ex.Message}");
+                    }
+                }
+
+                // 传送基金会阵营到地表
+                List<StsSpawnPoint> escapePoints = spawnService.GetEscapeZoneSpawnPlans(foundationPlayers.Count);
+                for (int i = 0; i < foundationPlayers.Count; i++)
+                {
+                    Player player = foundationPlayers[i];
+                    try
+                    {
+                        if (i < escapePoints.Count)
+                        {
+                            player.Position = escapePoints[i].Position;
+                            Logger.Debug($"{LogPrefix} 已传送 {player.Nickname} 到地表撤离点。");
+                        }
+                        else
+                        {
+                            // 如果点位不足，使用逃生区中心
+                            player.Position = Escape.DefaultEscapeZone.center;
+                            Logger.Debug($"{LogPrefix} 已传送 {player.Nickname} 到逃生区中心（点位不足）。");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"{LogPrefix} 传送玩家 {player.Nickname} 失败：{ex.Message}");
+                    }
+                }
+
+                // 延迟强制结束回合，基金会胜利
+                Timing.CallDelayed(2f, () => ForceEndRoundFoundationWin());
+            }
+            catch (Exception exception)
+            {
+                Logger.Error($"{LogPrefix} Omega 核弹爆炸逻辑执行失败：{exception}");
+            }
+        }
+
+        private bool IsFoundationFaction(Player player)
+        {
+            if (player?.Role == null)
+                return false;
+
+            RoleTypeId role = player.Role;
+
+            // 基金会阵营：科学家 + 九尾狐 + 设施警卫
+            return role == RoleTypeId.Scientist ||
+                   role == RoleTypeId.FacilityGuard ||
+                   role == RoleTypeId.NtfCaptain ||
+                   role == RoleTypeId.NtfSergeant ||
+                   role == RoleTypeId.NtfPrivate ||
+                   role == RoleTypeId.NtfSpecialist;
+        }
+
+        private void ForceEndRoundFoundationWin()
+        {
+            try
+            {
+                // 使用 RoundSummary 强制结束回合
+                RoundSummary.singleton.ForceEnd(RoundSummary.LeadingTeam.FacilityForces);
+                Logger.Info($"{LogPrefix} Omega 核弹爆炸，已强制结束回合，基金会胜利。");
+            }
+            catch (Exception exception)
+            {
+                Logger.Error($"{LogPrefix} 强制结束回合失败：{exception.Message}");
+            }
         }
 
         private void LockAlphaWarhead()

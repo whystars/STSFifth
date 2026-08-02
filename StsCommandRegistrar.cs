@@ -18,8 +18,7 @@ namespace STSFifth
         public StsCommandRegistrar(StsConfig config, StsTranslation translation, StsService stsService, StsNukeService nukeService)
         {
             commands.Add(new StsRoleCommand(config, translation, stsService));
-            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-            //commands.Add(new StsNukeCommand(config, translation, nukeService));
+            commands.Add(new StsNukeCommand(config, translation, nukeService));
         }
 
         public void Register()
@@ -35,7 +34,7 @@ namespace STSFifth
             }
 
             registered = true;
-            Logger.Info($"{LogPrefix} 管理员命令 stsrole 已注册到 RemoteAdmin。");
+            Logger.Info($"{LogPrefix} 管理员命令 stsrole 和 omeganuke 已注册到 RemoteAdmin。");
         }
 
         public void Unregister()
@@ -51,7 +50,7 @@ namespace STSFifth
             }
 
             registered = false;
-            Logger.Info($"{LogPrefix} 管理员命令 stsrole 已注销。");
+            Logger.Info($"{LogPrefix} 管理员命令 stsrole 和 omeganuke 已注销。");
         }
 
         private static void RegisterCommand(CommandHandler handler, ICommand command)
@@ -251,8 +250,6 @@ namespace STSFifth
         }
     }
 
-    // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-    /*
     internal sealed class StsNukeCommand : ICommand
     {
         private readonly StsConfig config;
@@ -266,7 +263,7 @@ namespace STSFifth
             this.nukeService = nukeService;
         }
 
-        public string Command => "stsnuke";
+        public string Command => "omeganuke";
 
         public string[] Aliases => Array.Empty<string>();
 
@@ -281,7 +278,7 @@ namespace STSFifth
 
             if (arguments.Count == 0)
             {
-                response = "用法：stsnuke start|stop";
+                response = "用法：omeganuke start|stop";
                 return true;
             }
 
@@ -290,18 +287,18 @@ namespace STSFifth
             if (action == "start")
             {
                 nukeService.ForceStartNuke();
-                response = translation.CommandResponses.NukeStarted;
+                response = "已强制启动 Omega 核弹。";
                 return true;
             }
 
             if (action == "stop")
             {
                 nukeService.ForceStopNuke();
-                response = translation.CommandResponses.NukeStopped;
+                response = "已强制停止 Omega 核弹。";
                 return true;
             }
 
-            response = translation.CommandResponses.NukeInvalidAction.Replace("{Action}", action);
+            response = $"未知操作：{action}，请使用 start 或 stop。";
             return false;
         }
 
@@ -337,7 +334,7 @@ namespace STSFifth
             }
             catch (Exception exception)
             {
-                Logger.Warn($"[STSFifth] 检查 stsnuke 权限失败：Sender={sender?.LogName ?? "<null>"}，错误：{exception.Message}");
+                Logger.Warn($"[STSFifth] 检查 omeganuke 权限失败：Sender={sender?.LogName ?? "<null>"}，错误：{exception.Message}");
                 return false;
             }
         }
@@ -352,5 +349,4 @@ namespace STSFifth
             return arguments.Array[arguments.Offset + index];
         }
     }
-    */
 }
