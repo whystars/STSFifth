@@ -62,16 +62,29 @@ namespace STSFifth
             stsService.HandlePlayerSpawned(ev);
         }
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //public override void OnWarheadStarting(WarheadStartingEventArgs ev)
-        //{
-        //    nukeService.HandleWarheadStarting(ev);
-        //}
+        public override void OnItemDropped(ItemDroppedEventArgs ev)
+        {
+            stsService.HandleItemDropped(ev.Player, ev.Pickup);
+        }
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //public override void OnWarheadStopping(WarheadStoppingEventArgs ev)
-        //{
-        //    nukeService.HandleWarheadStopping(ev);
-        //}
+        public override void OnItemThrown(ItemThrownEventArgs ev)
+        {
+            nukeService.HandleItemThrown(ev.Player, ev.Pickup);
+        }
+
+        public override void OnWarheadStarting(WarheadStartingEventArgs ev)
+        {
+            nukeService.HandleWarheadStarting(ev);
+        }
+
+        public override void OnWarheadStopping(WarheadStoppingEventArgs ev)
+        {
+            nukeService.HandleWarheadStopping(ev);
+        }
+
+        public override void OnServerRoundEnding(RoundEndingEventArgs ev)
+        {
+            nukeService.HandleRoundEnding(ev);
+        }
     }
 }

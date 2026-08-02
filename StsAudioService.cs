@@ -25,12 +25,10 @@ namespace STSFifth
         private bool audioRegistered;
         private bool cassieAudioAvailable;
         private bool entryAudioAvailable;
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //private bool nukeStartAudioAvailable;
+        private bool nukeAudioAvailable;
         private int cassieSessionId;
         private int entrySessionId;
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //private int nukeStartSessionId;
+        private int nukeSessionId;
 
         public StsAudioService(StsConfig config, StsTranslation translation)
         {
@@ -48,8 +46,7 @@ namespace STSFifth
             audioRegistered = true;
             cassieAudioAvailable = TryRegisterAudioResource(config.Audio.CassieAudioKey, CassieResourceName, "入场 CASSIE 公告音频");
             entryAudioAvailable = TryRegisterAudioResource(config.Audio.EntryAudioKey, EntryResourceName, "第五特别行动组入场音频");
-            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-            //nukeStartAudioAvailable = TryRegisterAudioResource(config.Audio.NukeStartAudioKey, NukeStartResourceName, "Omega 核弹启动音频");
+            nukeAudioAvailable = TryRegisterAudioResource("STS5_OmegaNuke", NukeStartResourceName, "Omega 核弹音频");
         }
 
         public void PlaySummonAnnouncement(Func<Player, bool> stsMemberFilter)
@@ -70,14 +67,109 @@ namespace STSFifth
         {
             StopSession(ref cassieSessionId, $"入场 CASSIE 公告音频，原因：{reason}");
             StopSession(ref entrySessionId, $"第五特别行动组入场音频，原因：{reason}");
-            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-            //StopSession(ref nukeStartSessionId, $"Omega 核弹启动音频，原因：{reason}");
+            StopSession(ref nukeSessionId, $"Omega 核弹音频，原因：{reason}");
 
             // 重置可用性标志，避免外部停止后残留无效引用
             cassieSessionId = 0;
             entrySessionId = 0;
-            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-            //nukeStartSessionId = 0;
+            nukeSessionId = 0;
+        }
+
+        public void PlayOmegaNukeStartCassie()
+        {
+            if (string.IsNullOrWhiteSpace(translation.OmegaNukeStartedCassieText))
+            {
+                Logger.Info($"{LogPrefix} OmegaNukeStartedCassieText 为空，已跳过 CASSIE 公告。");
+                return;
+            }
+
+            try
+            {
+                LabAnnouncer.Message(
+                    translation.OmegaNukeStartedCassieVoice.Trim(),
+                    translation.OmegaNukeStartedCassieText.Trim(),
+                    false,
+                    0f,
+                    0f);
+                Logger.Info($"{LogPrefix} 已发送 Omega 核弹启动 CASSIE 公告。");
+            }
+            catch (Exception exception)
+            {
+                Logger.Warn($"{LogPrefix} 发送 Omega 核弹启动 CASSIE 公告失败。错误：{exception.Message}");
+            }
+        }
+
+        public void PlayOmegaNukeStopCassie()
+        {
+            if (string.IsNullOrWhiteSpace(translation.OmegaNukeStoppedCassieText))
+            {
+                Logger.Info($"{LogPrefix} OmegaNukeStoppedCassieText 为空，已跳过 CASSIE 公告。");
+                return;
+            }
+
+            try
+            {
+                LabAnnouncer.Message(
+                    translation.OmegaNukeStoppedCassieVoice.Trim(),
+                    translation.OmegaNukeStoppedCassieText.Trim(),
+                    false,
+                    0f,
+                    0f);
+                Logger.Info($"{LogPrefix} 已发送 Omega 核弹停止 CASSIE 公告。");
+            }
+            catch (Exception exception)
+            {
+                Logger.Warn($"{LogPrefix} 发送 Omega 核弹停止 CASSIE 公告失败。错误：{exception.Message}");
+            }
+        }
+
+        public void PlayOmegaNukeRestartCassie()
+        {
+            if (string.IsNullOrWhiteSpace(translation.OmegaNukeRestartedCassieText))
+            {
+                Logger.Info($"{LogPrefix} OmegaNukeRestartedCassieText 为空，已跳过 CASSIE 公告。");
+                return;
+            }
+
+            try
+            {
+                LabAnnouncer.Message(
+                    translation.OmegaNukeRestartedCassieVoice.Trim(),
+                    translation.OmegaNukeRestartedCassieText.Trim(),
+                    false,
+                    0f,
+                    0f);
+                Logger.Info($"{LogPrefix} 已发送 Omega 核弹重启 CASSIE 公告。");
+            }
+            catch (Exception exception)
+            {
+                Logger.Warn($"{LogPrefix} 发送 Omega 核弹重启 CASSIE 公告失败。错误：{exception.Message}");
+            }
+        }
+
+        public void StartOmegaNukeAudio()
+        {
+            string key = "STS5_OmegaNuke";
+
+            if (!nukeAudioAvailable)
+            {
+                Logger.Warn($"{LogPrefix} Omega 核弹音频未成功注册，已跳过播放。key={key}");
+                return;
+            }
+
+            StopSession(ref nukeSessionId, "替换旧 Omega 核弹音频");
+
+            nukeSessionId = PlayGlobalAudio(
+                key,
+                config.Nuke.NukeAudioVolume,
+                target => target != null,
+                "Omega 核弹音频",
+                loop: config.Nuke.LoopNukeAudio);
+        }
+
+        public void StopOmegaNukeAudio()
+        {
+            StopSession(ref nukeSessionId, "停止 Omega 核弹音频");
         }
 
         private bool TryRegisterAudioResource(string rawKey, string resourceName, string purpose)
@@ -142,37 +234,6 @@ namespace STSFifth
             }
         }
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        /*
-        private void PlayNukeStartCassieSubtitle()
-        {
-            if (string.IsNullOrWhiteSpace(translation.NukeStartCassieText))
-            {
-                Logger.Info($"{LogPrefix} NukeStartCassieText 为空，已跳过核弹启动 CASSIE 字幕。");
-                return;
-            }
-
-            try
-            {
-                string announcement = translation.NukeStartCassieAnnouncement ?? "OMEGA WARHEAD ACTIVATED";
-                string announcementWithSeconds = announcement.Replace("{Seconds}", ((int)config.Nuke.CountdownSeconds).ToString());
-                string textWithSeconds = translation.NukeStartCassieText.Replace("{Seconds}", ((int)config.Nuke.CountdownSeconds).ToString());
-
-                LabAnnouncer.Message(
-                    announcementWithSeconds.Trim(),
-                    textWithSeconds.Trim(),
-                    false,
-                    0f,
-                    0f);
-                Logger.Info($"{LogPrefix} 已发送 Omega 核弹启动 CASSIE 公告。");
-            }
-            catch (Exception exception)
-            {
-                Logger.Warn($"{LogPrefix} 发送 Omega 核弹启动 CASSIE 公告失败。错误：{exception.Message}");
-            }
-        }
-        */
-
         private void PlayCassieAudio()
         {
             string key = NormalizeKey(config.Audio.CassieAudioKey);
@@ -226,34 +287,6 @@ namespace STSFifth
                 target => target != null && stsMemberFilter(target),
                 "第五特别行动组入场音频");
         }
-
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        /*
-        private void PlayNukeStartAudio()
-        {
-            string key = NormalizeKey(config.Audio.NukeStartAudioKey);
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                Logger.Warn($"{LogPrefix} Audio.NukeStartAudioKey 为空，已跳过 Omega 核弹启动音频播放。");
-                return;
-            }
-
-            if (!nukeStartAudioAvailable)
-            {
-                Logger.Warn($"{LogPrefix} Omega 核弹启动音频未成功注册，已跳过播放。key={key}");
-                return;
-            }
-
-            StopSession(ref nukeStartSessionId, "替换旧 Omega 核弹启动音频");
-
-            nukeStartSessionId = PlayGlobalAudio(
-                key,
-                config.Audio.NukeStartVolume,
-                target => target != null,
-                "Omega 核弹启动音频（循环）",
-                loop: true);
-        }
-        */
 
         private int PlayGlobalAudio(string key, float volume, Func<Player, bool> filter, string purpose, bool loop = false)
         {

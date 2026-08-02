@@ -15,37 +15,29 @@ namespace STSFifth
         [YamlMember(Description = "入场时全体玩家收到的 CASSIE 公告字幕文本。")]
         public string EntryCassieText { get; set; } = "所有单位注意，经<color=red>O5议会指令</color><color=#00FFFF>第五特别行动组</color>已进入设施，他们授权启动Omega核弹";
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹启动时的 CASSIE 公告字幕文本，{Seconds} 会被替换为配置的倒计时总秒数。")]
-        //public string NukeStartCassieText { get; set; } = "注意，<color=yellow>Omega核弹</color>正在合法引爆，距离引爆还剩{Seconds}秒";
+        [YamlMember(Description = "Omega核弹倒计时HUD显示文本，{time}为剩余秒数")]
+        public string OmegaNukeCountdownHud { get; set; } = "<color=yellow>Omega核弹</color>正在被<color=#00FFFF>STS-5小队</color>引爆，时间还剩余<color=red>{time}</color>秒";
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹启动时游戏原生 CASSIE 朗读的英文文本，使用 CASSIE 语法，{Seconds} 会被替换为倒计时秒数。")]
-        //public string NukeStartCassieAnnouncement { get; set; } = "ATTENTION . OMEGA WARHEAD DETONATION SEQUENCE ACTIVATED . T MINUS {Seconds} SECONDS";
+        [YamlMember(Description = "Omega核弹启动时的CASSIE字幕文本")]
+        public string OmegaNukeStartedCassieText { get; set; } = "所有人员注意，<color=yellow>Omega核弹</color>正在被<color=red>合法引爆</color>请所有人员立即前往地表撤离";
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹关闭时的 CASSIE 公告字幕文本。")]
-        //public string NukeStopCassieText { get; set; } = "Omega核弹遭到关闭，请重新开启";
+        [YamlMember(Description = "Omega核弹启动时的CASSIE语音（需包含钟声）")]
+        public string OmegaNukeStartedCassieVoice { get; set; } = "bell_start bell_start bell_start . . Attention all personnel . the Omega nuclear is being detonated . All personnel must immediately proceed to the surface";
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹关闭时游戏原生 CASSIE 朗读的英文文本，使用 CASSIE 语法。")]
-        //public string NukeStopCassieAnnouncement { get; set; } = "OMEGA WARHEAD DETONATION CANCELLED . REACTIVATION AUTHORIZED";
+        [YamlMember(Description = "Omega核弹停止时的CASSIE字幕文本")]
+        public string OmegaNukeStoppedCassieText { get; set; } = "<color=yellow>Omega核弹</color>被<color=green>关闭</color>，请重新开启";
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹倒计时期间屏幕上方显示的文案模板，{Seconds} 会被替换为剩余秒数。")]
-        //public string NukeCountdownHudText { get; set; } = "Omega核弹正在被引爆，距离设施被炸毁还剩余:{Seconds}秒";
+        [YamlMember(Description = "Omega核弹停止时的CASSIE语音")]
+        public string OmegaNukeStoppedCassieVoice { get; set; } = "bell_start bell_start bell_start . . The Omega nuclear has been shut down . Please start it";
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹关闭后显示的提示文案。")]
-        //public string NukeClosedNotificationText { get; set; } = "Omega核弹已被关闭，可重新开启";
+        [YamlMember(Description = "Omega核弹重启时的CASSIE字幕文本")]
+        public string OmegaNukeRestartedCassieText { get; set; } = "<color=yellow>Omega核弹</color>被<color=red>重新开启</color>请所有人员按原定计划执行";
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹爆炸时非基金会阵营的死亡原因文案。")]
-        //public string NukeDeathReasonText { get; set; } = "你在Omega核弹爆炸中消失了";
+        [YamlMember(Description = "Omega核弹重启时的CASSIE语音")]
+        public string OmegaNukeRestartedCassieVoice { get; set; } = "bell_start bell_start bell_start . . The Omega nuclear has been restarted . All personnel are to execute";
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹爆炸后全服显示的秘密提示文案。")]
-        //public string NukeSecretHintText { get; set; } = "核辐射下的秘密";
+        [YamlMember(Description = "CASSIE字幕显示时长（秒）")]
+        public float CassieSubtitleDurationSeconds { get; set; } = 20.0f;
 
         [YamlMember(Description = "管理员 stsrole 命令返回文本。")]
         public StsCommandTranslation CommandResponses { get; set; } = new StsCommandTranslation();
@@ -63,15 +55,14 @@ namespace STSFifth
             ValidateRoleDisplayNames(warn);
             ValidateRoleHudTexts(warn);
             EntryCassieText = RequireText(EntryCassieText, defaults.EntryCassieText, "EntryCassieText", warn);
-            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-            //NukeStartCassieText = RequireText(NukeStartCassieText, defaults.NukeStartCassieText, "NukeStartCassieText", warn);
-            //NukeStartCassieAnnouncement = RequireText(NukeStartCassieAnnouncement, defaults.NukeStartCassieAnnouncement, "NukeStartCassieAnnouncement", warn);
-            //NukeStopCassieText = RequireText(NukeStopCassieText, defaults.NukeStopCassieText, "NukeStopCassieText", warn);
-            //NukeStopCassieAnnouncement = RequireText(NukeStopCassieAnnouncement, defaults.NukeStopCassieAnnouncement, "NukeStopCassieAnnouncement", warn);
-            //NukeCountdownHudText = RequireText(NukeCountdownHudText, defaults.NukeCountdownHudText, "NukeCountdownHudText", warn);
-            //NukeClosedNotificationText = RequireText(NukeClosedNotificationText, defaults.NukeClosedNotificationText, "NukeClosedNotificationText", warn);
-            //NukeDeathReasonText = RequireText(NukeDeathReasonText, defaults.NukeDeathReasonText, "NukeDeathReasonText", warn);
-            //NukeSecretHintText = RequireText(NukeSecretHintText, defaults.NukeSecretHintText, "NukeSecretHintText", warn);
+
+            OmegaNukeCountdownHud = RequireText(OmegaNukeCountdownHud, defaults.OmegaNukeCountdownHud, "OmegaNukeCountdownHud", warn);
+            OmegaNukeStartedCassieText = RequireText(OmegaNukeStartedCassieText, defaults.OmegaNukeStartedCassieText, "OmegaNukeStartedCassieText", warn);
+            OmegaNukeStartedCassieVoice = RequireText(OmegaNukeStartedCassieVoice, defaults.OmegaNukeStartedCassieVoice, "OmegaNukeStartedCassieVoice", warn);
+            OmegaNukeStoppedCassieText = RequireText(OmegaNukeStoppedCassieText, defaults.OmegaNukeStoppedCassieText, "OmegaNukeStoppedCassieText", warn);
+            OmegaNukeStoppedCassieVoice = RequireText(OmegaNukeStoppedCassieVoice, defaults.OmegaNukeStoppedCassieVoice, "OmegaNukeStoppedCassieVoice", warn);
+            OmegaNukeRestartedCassieText = RequireText(OmegaNukeRestartedCassieText, defaults.OmegaNukeRestartedCassieText, "OmegaNukeRestartedCassieText", warn);
+            OmegaNukeRestartedCassieVoice = RequireText(OmegaNukeRestartedCassieVoice, defaults.OmegaNukeRestartedCassieVoice, "OmegaNukeRestartedCassieVoice", warn);
 
             if (CommandResponses == null)
             {

@@ -41,9 +41,8 @@ namespace STSFifth
         [YamlMember(Description = "CASSIE 公告音频、字幕时长和入场音频配置。")]
         public StsAudioConfig Audio { get; set; } = new StsAudioConfig();
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        //[YamlMember(Description = "Omega 核弹相关配置。")]
-        //public StsNukeConfig Nuke { get; set; } = new StsNukeConfig();
+        [YamlMember(Description = "Omega 核弹系统配置。")]
+        public StsNukeConfig Nuke { get; set; } = new StsNukeConfig();
 
         [YamlMember(Description = "是否启用 RemoteAdmin 管理员命令 stsrole。")]
         public bool EnableTestCommands { get; set; } = true;
@@ -93,8 +92,7 @@ namespace STSFifth
             ValidateSpawn(warn);
             ValidateHud(warn);
             ValidateAudio(warn);
-            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-            //ValidateNuke(warn);
+            ValidateNuke(warn);
             ValidateEquipment(warn);
             ValidateAmmo(warn);
         }
@@ -288,12 +286,8 @@ namespace STSFifth
 
             Audio.CassieVolume = ClampVolume(Audio.CassieVolume, defaults.CassieVolume, "Audio.CassieVolume", warn);
             Audio.EntryVolume = ClampVolume(Audio.EntryVolume, defaults.EntryVolume, "Audio.EntryVolume", warn);
-            // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-            //Audio.NukeStartVolume = ClampVolume(Audio.NukeStartVolume, defaults.NukeStartVolume, "Audio.NukeStartVolume", warn);
         }
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        /*
         private void ValidateNuke(Action<string> warn)
         {
             StsNukeConfig defaults = new StsNukeConfig();
@@ -305,36 +299,38 @@ namespace STSFifth
                 return;
             }
 
-            if (Nuke.CountdownSeconds <= 0f || !IsFinite(Nuke.CountdownSeconds))
+            if (Nuke.DetonationSeconds <= 0f || !IsFinite(Nuke.DetonationSeconds))
             {
-                warn($"Nuke.CountdownSeconds 非法，已回退为默认值 {defaults.CountdownSeconds}。");
-                Nuke.CountdownSeconds = defaults.CountdownSeconds;
+                warn($"Nuke.DetonationSeconds 非法，已回退为默认值 {defaults.DetonationSeconds} 秒。");
+                Nuke.DetonationSeconds = defaults.DetonationSeconds;
             }
 
-            if (Nuke.NotificationDurationSeconds < 0f || !IsFinite(Nuke.NotificationDurationSeconds))
+            if (Nuke.CoinPickupScale <= 0f || !IsFinite(Nuke.CoinPickupScale))
             {
-                warn($"Nuke.NotificationDurationSeconds 非法，已回退为默认值 {defaults.NotificationDurationSeconds}。");
-                Nuke.NotificationDurationSeconds = defaults.NotificationDurationSeconds;
+                warn($"Nuke.CoinPickupScale 非法，已回退为默认值 {defaults.CoinPickupScale}。");
+                Nuke.CoinPickupScale = defaults.CoinPickupScale;
             }
 
-            if (Nuke.EndRoundDelaySeconds < 0f || !IsFinite(Nuke.EndRoundDelaySeconds))
+            Nuke.NukeAudioVolume = ClampVolume(Nuke.NukeAudioVolume, defaults.NukeAudioVolume, "Nuke.NukeAudioVolume", warn);
+
+            // 验证 RGB 颜色值
+            if (Nuke.LightColorR < 0 || Nuke.LightColorR > 255 ||
+                Nuke.LightColorG < 0 || Nuke.LightColorG > 255 ||
+                Nuke.LightColorB < 0 || Nuke.LightColorB > 255)
             {
-                warn($"Nuke.EndRoundDelaySeconds 非法，已回退为默认值 {defaults.EndRoundDelaySeconds}。");
-                Nuke.EndRoundDelaySeconds = defaults.EndRoundDelaySeconds;
+                warn($"Nuke 灯光 RGB 值已自动限制在 0-255 范围内。原值: R={Nuke.LightColorR}, G={Nuke.LightColorG}, B={Nuke.LightColorB}");
+                Nuke.LightColorR = Math.Max(0, Math.Min(255, Nuke.LightColorR));
+                Nuke.LightColorG = Math.Max(0, Math.Min(255, Nuke.LightColorG));
+                Nuke.LightColorB = Math.Max(0, Math.Min(255, Nuke.LightColorB));
             }
 
-            if (Nuke.SecretHintDurationSeconds <= 0f || !IsFinite(Nuke.SecretHintDurationSeconds))
+            if (Nuke.CountdownHudFontSize <= 0)
             {
-                warn($"Nuke.SecretHintDurationSeconds 非法，已回退为默认值 {defaults.SecretHintDurationSeconds}。");
-                Nuke.SecretHintDurationSeconds = defaults.SecretHintDurationSeconds;
-            }
-
-            if (string.IsNullOrWhiteSpace(Nuke.SurvivingFactionNames))
-            {
-                Nuke.SurvivingFactionNames = defaults.SurvivingFactionNames;
+                warn($"Nuke.CountdownHudFontSize 非法，已回退为默认值 {defaults.CountdownHudFontSize}。");
+                Nuke.CountdownHudFontSize = defaults.CountdownHudFontSize;
             }
         }
-        */
+
         private void ValidateEquipment(Action<string> warn)
         {
             Dictionary<StsRole, List<string>> defaults = StsConfigDefaults.CreateEquipment();
@@ -568,26 +564,47 @@ namespace STSFifth
         //public float NukeStartVolume { get; set; } = 1f;
     }
 
-    // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-    /*
     public sealed class StsNukeConfig
     {
-        [YamlMember(Description = "Omega 核弹倒计时总秒数。")]
-        public float CountdownSeconds { get; set; } = 130f;
+        [YamlMember(Description = "是否启用 Omega 核弹功能")]
+        public bool IsEnabled { get; set; } = true;
 
-        [YamlMember(Description = "核弹关闭提示显示时长（秒）。")]
-        public float NotificationDurationSeconds { get; set; } = 8f;
+        [YamlMember(Description = "Omega 核弹引爆倒计时（秒）")]
+        public float DetonationSeconds { get; set; } = 130f;
 
-        [YamlMember(Description = "Omega 核弹爆炸结算（杀人/传送/CASSIE 秘密文案）到强制结束回合之间的缓冲秒数。")]
-        public float EndRoundDelaySeconds { get; set; } = 3f;
+        [YamlMember(Description = "是否给队长发放启动硬币")]
+        public bool GiveCoinToCommander { get; set; } = true;
 
-        [YamlMember(Description = "Omega 核弹爆炸后【核辐射下的秘密】提示显示时长（秒），设置较大值如 60 可持续显示到回合重启。")]
-        public float SecretHintDurationSeconds { get; set; } = 60f;
+        [YamlMember(Description = "硬币掉落物缩放倍数（方便识别）")]
+        public float CoinPickupScale { get; set; } = 1.8f;
 
-        [YamlMember(Description = "爆炸结算时豁免死亡的阵营说明，仅用于日志记录，实际豁免逻辑硬编码为基金会、QRT、PSC。")]
-        public string SurvivingFactionNames { get; set; } = "FacilityForces,QRTForces,PSCFaction";
+        [YamlMember(Description = "核弹音频音量（0.0-1.0）")]
+        public float NukeAudioVolume { get; set; } = 0.8f;
+
+        [YamlMember(Description = "核弹音频是否循环播放")]
+        public bool LoopNukeAudio { get; set; } = false;
+
+        [YamlMember(Description = "启动时是否改变设施灯光颜色")]
+        public bool EnableLightEffect { get; set; } = true;
+
+        [YamlMember(Description = "设施灯光颜色 - 红色分量（0-255）")]
+        public int LightColorR { get; set; } = 0;
+
+        [YamlMember(Description = "设施灯光颜色 - 绿色分量（0-255）")]
+        public int LightColorG { get; set; } = 128;
+
+        [YamlMember(Description = "设施灯光颜色 - 蓝色分量（0-255）")]
+        public int LightColorB { get; set; } = 255;
+
+        [YamlMember(Description = "HUD 倒计时显示 X 坐标")]
+        public int CountdownHudX { get; set; } = 0;
+
+        [YamlMember(Description = "HUD 倒计时显示 Y 坐标")]
+        public int CountdownHudY { get; set; } = 200;
+
+        [YamlMember(Description = "HUD 倒计时字体大小")]
+        public int CountdownHudFontSize { get; set; } = 30;
     }
-    */
 
     internal static class StsConfigDefaults
     {

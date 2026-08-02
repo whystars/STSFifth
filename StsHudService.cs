@@ -51,28 +51,26 @@ namespace STSFifth
                 false);
         }
 
-        // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-        /*
-        public void ShowNukeCountdown(Player player, float remainingSeconds)
+        public void ShowOmegaNukeCountdown(Player player, float remainingSeconds)
         {
             if (player == null)
             {
                 return;
             }
 
-            string text = (translation.NukeCountdownHudText ?? "Omega核弹倒计时:{Seconds}秒")
-                .Replace("{Seconds}", ((int)Math.Ceiling(remainingSeconds)).ToString());
+            int seconds = (int)Math.Ceiling(remainingSeconds);
+            string text = translation.OmegaNukeCountdownHud.Replace("{time}", seconds.ToString());
 
             UpsertHint(
                 player,
                 GetNukeCountdownHintId(player),
                 text,
-                config.Hud.NukeCountdownX,
-                config.Hud.NukeCountdownY,
+                config.Nuke.CountdownHudX,
+                config.Nuke.CountdownHudY,
                 false);
         }
 
-        public void HideNukeCountdown(Player player)
+        public void ClearOmegaNukeCountdown(Player player)
         {
             if (player == null)
             {
@@ -95,7 +93,6 @@ namespace STSFifth
                 Logger.Warn($"{LogPrefix} 隐藏核弹倒计时 HUD 失败：{FormatPlayer(player)}，错误：{exception.Message}");
             }
         }
-        */
 
         public void ShowNotification(Player player, string text, float durationSeconds)
         {
@@ -143,8 +140,7 @@ namespace STSFifth
             try
             {
                 RemoveHintIfExists(display, GetRoleHintId(player));
-                // TODO: 待后续设计文档完善后重新实现 Omega 核弹功能
-                //RemoveHintIfExists(display, GetNukeCountdownHintId(player));
+                RemoveHintIfExists(display, GetNukeCountdownHintId(player));
                 RemoveHintIfExists(display, GetNotificationHintId(player));
                 display.ForceUpdate(true);
             }

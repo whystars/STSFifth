@@ -407,8 +407,41 @@ namespace STSFifth
 
             try
             {
-                player.SetRole(carrierRole, RoleChangeReason.Respawn, RoleSpawnFlags.All);
+                // 使用 RoleSpawnFlags.None 阻止原版装备发放
+                player.SetRole(carrierRole, RoleChangeReason.Respawn, RoleSpawnFlags.None);
                 EnsureCarrierRoleApplied(player, role, carrierRole);
+
+                // 延迟清空物品并发放配置的装备
+                Timing.CallDelayed(0.1f, () =>
+                {
+                    if (player?.IsAlive != true || player.Role != carrierRole)
+                        return;
+
+                    // 清空所有原版物品
+                    ClearAllItems(player);
+
+                    // 传送到指定位置
+                    if (spawnPoint != null)
+                    {
+                        player.Position = spawnPoint.Position;
+                    }
+
+                    // 根据配置发放物品
+                    GiveConfiguredItems(player, role);
+
+                    // 根据配置设置弹药
+                    SetConfiguredAmmo(player, role);
+
+                    // 设置最大生命值
+                    SetRoleMaxHealth(player, role);
+
+                    // 发放硬币（仅队长）
+                    if (role == StsRole.Commander && config.Nuke != null && config.Nuke.IsEnabled && config.Nuke.GiveCoinToCommander)
+                    {
+                        GiveCommanderOmegaCoin(player);
+                    }
+                });
+
                 StabilizePresentationAfterRoleAssignment(player, data);
 
                 Logger.Info($"{LogPrefix} 已将 {FormatPlayer(player)} 分配为 {GetRoleDisplayName(role)}，承载角色：{carrierRole}。");
@@ -665,6 +698,98 @@ namespace STSFifth
         {
             return Player.List.FirstOrDefault(player => player != null && player.PlayerId == playerId) ??
                    Player.DummyList.FirstOrDefault(player => player != null && player.PlayerId == playerId);
+        }
+
+        private void ClearAllItems(Player player)
+        {
+            if (player?.Inventory == null)
+                return;
+
+            player.ClearInventory();
+
+            Logger.Debug($"{LogPrefix} 已清空 {FormatPlayer(player)} 的所有物品。");
+        }
+
+        private void GiveConfiguredItems(Player player, StsRole role)
+        {
+            if (!config.Equipment.TryGetValue(role, out List<string> items) || items == null)
+                return;
+
+            foreach (string itemName in items)
+            {
+                if (Enum.TryParse<ItemType>(itemName, true, out ItemType itemType))
+                {
+                    player.AddItem(itemType);
+                }
+                else
+                {
+                    Logger.Warn($"{LogPrefix} 无法识别的物品类型：{itemName}");
+                }
+            }
+
+            Logger.Debug($"{LogPrefix} 已为 {FormatPlayer(player)} ({role}) 发放 {items.Count} 件物品。");
+        }
+
+        private void SetConfiguredAmmo(Player player, StsRole role)
+        {
+            if (!config.Ammo.TryGetValue(role, out Dictionary<string, int> ammo) || ammo == null)
+                return;
+
+            foreach (KeyValuePair<string, int> kvp in ammo)
+            {
+                if (Enum.TryParse<ItemType>(kvp.Key, true, out ItemType ammoType))
+                {
+                    player.SetAmmo(ammoType, (ushort)kvp.Value);
+                }
+                else
+                {
+                    Logger.Warn($"{LogPrefix} 无法识别的弹药类型：{kvp.Key}");
+                }
+            }
+
+            Logger.Debug($"{LogPrefix} 已为 {FormatPlayer(player)} ({role}) 设置弹药。");
+        }
+
+        private void SetRoleMaxHealth(Player player, StsRole role)
+        {
+            if (!config.RoleSettings.TryGetValue(role, out StsRoleConfig roleConfig))
+                return;
+
+            player.MaxHealth = roleConfig.MaxHealth;
+            player.Health = roleConfig.MaxHealth;
+
+            Logger.Debug($"{LogPrefix} 已设置 {FormatPlayer(player)} ({role}) 最大生命值为 {roleConfig.MaxHealth}。");
+        }
+
+        private void GiveCommanderOmegaCoin(Player commander)
+        {
+            if (commander == null)
+                return;
+
+            commander.AddItem(ItemType.Coin);
+
+            Logger.Info($"{LogPrefix} 已为队长 {FormatPlayer(commander)} 发放 Omega 核弹启动硬币。");
+        }
+
+        public bool IsStsRole(Player player)
+        {
+            return player != null && memberDataByPlayerId.ContainsKey(player.PlayerId);
+        }
+
+        public void HandleItemDropped(Player player, ItemPickupBase pickup)
+        {
+            if (!config.Nuke.IsEnabled || pickup == null || pickup.Info.ItemId != ItemType.Coin)
+                return;
+
+            // 检查是否为 STS-5 成员
+            if (!IsStsRole(player))
+                return;
+
+            // 放大掉落物尺寸
+            float scale = config.Nuke.CoinPickupScale;
+            pickup.transform.localScale *= scale;
+
+            Logger.Debug($"{LogPrefix} 已放大 {FormatPlayer(player)} 掉落的硬币尺寸至 {scale} 倍。");
         }
 
         private sealed class CandidatePool
